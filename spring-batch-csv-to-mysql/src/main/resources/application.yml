@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/gmc
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: mindzen
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+logging:
+  level:
+    org.springframework.boot: DEBUG

@@ -1,0 +1,47 @@
+task wrapper(type: Wrapper) {
+	gradleVersion = '3.2.1'
+}
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE"
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+sourceCompatibility = 1.8
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+
+dependencies {
+	compile 'org.springframework:spring-oxm:4.3.9.RELEASE'
+	compileOnly('org.projectlombok:lombok:1.16.16')
+	runtime('mysql:mysql-connector-java')
+	compile('org.hibernate:hibernate-core:5.2.9.Final')
+	compile('org.hibernate:hibernate-entitymanager:5.2.9.Final')
+	compile('org.hibernate:hibernate-validator:5.4.1.Final')
+	compile('org.springframework.boot:spring-boot-starter-data-jpa:1.5.4.RELEASE')
+	compile('org.springframework.boot:spring-boot-starter-batch:1.5.4.RELEASE')
+	testCompile('org.springframework.boot:spring-boot-starter-test:1.5.4.RELEASE')
+}
+buildscript {
+	repositories {
+		mavenLocal()
+		jcenter()
+	}
+	dependencies {
+		classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE"
+	}
+}
