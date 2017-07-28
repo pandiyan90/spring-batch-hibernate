@@ -14,7 +14,6 @@ public class PersonItemProcessor implements ItemProcessor<PersonDTO, Person> {
 		Person person = new Person();
 		person.setFirstName(personDTO.getFirstName());
 		person.setLastName(personDTO.getLastName());
-		log.info("Processor: "+person);
 		return person;
 	}
 }

@@ -2,7 +2,6 @@ package com.walking.techie;
 
 import java.util.Properties;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.springframework.batch.core.Job;
@@ -25,12 +24,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -51,28 +48,46 @@ import lombok.extern.slf4j.Slf4j;
 public class BatchConfiguration {
 
     @Value("${spring.datasource.driver-class-name}")
-    private String databaseDriver;
+    private String dbDriver;
     
     @Value("${spring.datasource.url}")
-    private String databaseUrl;
+    private String dbUrl;
 
     @Value("${spring.datasource.username}")
-    private String databaseUsername;
+    private String dbUsername;
 
     @Value("${spring.datasource.password}")
-    private String databasePassword;
+    private String dbPassword;
+
+    @Value("${spring.jpa.database-platform}")
+    private String dbPlatform;
+
+    @Value("${spring.jpa.show-sql}")
+    private boolean dbShowSql;
+
+    @Value("${spring.jpa.generate-ddl}")
+    private boolean dbGenerateDdl;
+
+    String packageName="com.walking.techie";
+    
+	@Autowired
+	private JobBuilderFactory jobBuilderFactory;
+
+	@Autowired
+	private StepBuilderFactory stepBuilderFactory;
 
 	@Bean
 	public FlatFileItemReader<PersonDTO> reader() {
 		FlatFileItemReader<PersonDTO> reader = new FlatFileItemReader<>();
 		reader.setResource(new ClassPathResource("person.csv"));
+		reader.setLinesToSkip(1);
 
 		DefaultLineMapper<PersonDTO> lineMapper = new DefaultLineMapper<>();
 		DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
 		String[] names={"firstName","lastName"};
 		lineTokenizer.setNames(names);
 		lineMapper.setLineTokenizer(lineTokenizer);
-
+		
 		BeanWrapperFieldSetMapper<PersonDTO> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
 		fieldSetMapper.setTargetType(PersonDTO.class);
 		lineMapper.setFieldSetMapper(fieldSetMapper);
@@ -97,7 +112,7 @@ public class BatchConfiguration {
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(){
 		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
-		bean.setPackagesToScan("com.walking.techie");
+		bean.setPackagesToScan(packageName);
 		bean.setDataSource(dataSource());
 		bean.setJpaVendorAdapter(jpaVendorAdapter());
 		bean.setJpaProperties(new Properties());
@@ -109,35 +124,36 @@ public class BatchConfiguration {
 	public JpaVendorAdapter jpaVendorAdapter() {
 		HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
 		adapter.setDatabase(Database.MYSQL);
-		adapter.setGenerateDdl(true);
-		adapter.setShowSql(false);
-		adapter.setDatabasePlatform("org.hibernate.dialect.MySQL5Dialect");
+		adapter.setGenerateDdl(dbGenerateDdl);
+		adapter.setShowSql(dbShowSql);
+		adapter.setDatabasePlatform(dbPlatform);
 		return adapter;
 	}
 
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setDriverClassName(databaseDriver);
-		dataSource.setUrl(databaseUrl);
-		dataSource.setUsername(databaseUsername);
-		dataSource.setPassword(databasePassword);
+		dataSource.setDriverClassName(dbDriver);
+		dataSource.setUrl(dbUrl);
+		dataSource.setUsername(dbUsername);
+		dataSource.setPassword(dbPassword);
 		return dataSource;
 	}
 
 	@Bean
-	public Job importPerson(JobBuilderFactory jobs, Step step) {
-		return jobs.get("import")
+	public Job importPerson(JobCompletionNotificationListener listener) {
+		return jobBuilderFactory.get("import")
 				.incrementer(new RunIdIncrementer())
-				.flow(step)
+				.listener(listener)
+				.flow(step1())
 				.end()
 				.build();
 	}
 
 	@Bean
-	public Step step1(StepBuilderFactory stepBuilderFactory, ItemReader<PersonDTO> reader, ItemWriter<Person> writer, ItemProcessor<PersonDTO, Person> processor) {
+	public Step step1() {
 		return stepBuilderFactory.get("step1")
-				.<PersonDTO, Person>chunk(1000)
+				.<PersonDTO, Person>chunk(10)
 				.reader(reader())
 				.processor(processor())
 				.writer(writer())

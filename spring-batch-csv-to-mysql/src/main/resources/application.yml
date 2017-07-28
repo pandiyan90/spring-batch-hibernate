@@ -5,7 +5,9 @@ spring:
     username: root
     password: mindzen
   jpa:
+    generate-ddl: true
     show-sql: true
+    database-platform: org.hibernate.dialect.MySQL5Dialect
     hibernate:
       ddl-auto: update
     properties:
