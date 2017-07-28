@@ -16,6 +16,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'maven'
 
 sourceCompatibility = 1.8
 
@@ -27,11 +28,12 @@ repositories {
 
 dependencies {
 	compile 'org.springframework:spring-oxm:4.3.9.RELEASE'
+	compile 'org.springframework.batch:spring-batch-core:3.0.8.RELEASE'
 	compileOnly('org.projectlombok:lombok:1.16.16')
+	compile 'org.hibernate:hibernate-core:5.2.9.Final'
+	compile 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+	compile 'org.hibernate:hibernate-validator:5.4.1.Final'
 	runtime('mysql:mysql-connector-java')
-	compile('org.hibernate:hibernate-core:5.2.9.Final')
-	compile('org.hibernate:hibernate-entitymanager:5.2.9.Final')
-	compile('org.hibernate:hibernate-validator:5.4.1.Final')
 	compile('org.springframework.boot:spring-boot-starter-data-jpa:1.5.4.RELEASE')
 	compile('org.springframework.boot:spring-boot-starter-batch:1.5.4.RELEASE')
 	testCompile('org.springframework.boot:spring-boot-starter-test:1.5.4.RELEASE')
